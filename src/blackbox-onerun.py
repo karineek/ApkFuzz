@@ -1,6 +1,6 @@
 import os, random, sys
 
-path = "/Users/karine/Downloads/F-Droid1.apk"
+path = "F-Droid1.apk"
 i = 7401341
 j = i + 8921
 

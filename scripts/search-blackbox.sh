@@ -15,7 +15,7 @@ while true; do
   cp "$RANDOM_FILE" F-Droid1.apk
 
   # 4. Run your test
-  python3 blackbox-onerun.py
+  python3 src/blackbox-onerun.py
 
   # 5. Check results
   if unzip -t F-Droid1.apk >/dev/null; then
@@ -23,7 +23,7 @@ while true; do
     apkanalyzer apk summary F-Droid1.apk
     
     # Save the successful result with a unique hashed name
-    HASH=$(date +%s%N | md5 | head -c 8)
+    HASH=$(date +%s%N | md5sum | head -c 8)
     cp F-Droid1.apk "seeds/F-Droid_${HASH}.apk"
   else
     echo "ZIP BROKEN"
