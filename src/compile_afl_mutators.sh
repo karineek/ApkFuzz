@@ -1,5 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 mkdir -p ../build
 cd custom_mutators/ || exit 1
+
+if [ ! -f "$HOME/AFLplusplus/src/afl-performance.c" ] || [ ! -f "$HOME/AFLplusplus/include/afl-fuzz.h" ]; then
+  echo "error: AFLplusplus was not found under $HOME/AFLplusplus"
+  echo "       expected: $HOME/AFLplusplus/src/afl-performance.c"
+  echo "       expected: $HOME/AFLplusplus/include/afl-fuzz.h"
+  exit 1
+fi
 
 # Compile AFL helper
 clang -c -fPIC -Wall -O3 \

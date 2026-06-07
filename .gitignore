@@ -1,0 +1,26 @@
+# Python environment
+.venv/
+__pycache__/
+*.pyc
+
+# Git/editor/system junk
+.DS_Store
+.vscode/
+
+# Local logs and temporary files
+all.log
+*.log
+*.backup
+
+# Runtime/generated APK files
+F-Droid1.apk
+seeds/
+*.apk
+
+# AFL runtime data
+afl/in/
+afl/out/
+
+# Local generated logs/results
+logs/
+results/
