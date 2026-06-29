@@ -257,7 +257,7 @@ Run:
 
 ## Greybox fuzzing
 
-See instructions in src folder.
+See instructions in `src` folder.
 
 ## Test Corrupted APK
 
