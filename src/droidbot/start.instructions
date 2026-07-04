@@ -3,11 +3,11 @@ import afl
 
 ....
 
-# Need to add to the script the following code:
+# Need to add to the DroidBot start.py argument parser:
     parser.add_argument("-a", action="store", dest="apk_path", required=False,
                         help="The file path to target APK")
     parser.add_argument("-aa", action="store", dest="apk_file_path", required=False,
-                        help="The file path to target APK")
+                        help="The file path to a text file containing the target APK path")
 
 ....
 
@@ -23,6 +23,7 @@ import afl
         return
 
     if opts.apk_file_path:
+        # AFL path-file integration: -aa reads the real APK path from the file passed by AFL as @@.
         if not os.path.exists(opts.apk_file_path):
             print(f"apk_file_path does not exist. {opts.apk_file_path}")
             return

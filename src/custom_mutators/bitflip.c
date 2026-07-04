@@ -10,16 +10,16 @@ bool mutateBinary(uint8_t *new_buf, my_mutator_t *data) {
     }
 
     uint64_t buf_size = data->buf_size;
-    uint64_t i = data->i;
-    uint64_t j = data->j;
+    uint64_t start = data->i;
+    uint64_t end = data->j;
 
-    if (j <= i) {
-        perror(">> (mutateBinary) Error: Need 0 <= i < j\n");
+    if (end <= start) {
+        perror(">> (mutateBinary) Error: Need 0 <= start < end\n");
         return false;
     }
 
-    if (j > buf_size) {
-        perror(">> (mutateBinary) Error: Range end j is past buffer size\n");
+    if (end > buf_size) {
+        perror(">> (mutateBinary) Error: Range end is past buffer size\n");
         return false;
     }
 
@@ -31,8 +31,9 @@ bool mutateBinary(uint8_t *new_buf, my_mutator_t *data) {
     }
 
     int max_iterations = (rand() % (50)) + 1;
-    for (i = 0; i < max_iterations; i++) {
-        uint64_t off = i + (rand() % (j - i));
+    uint64_t range_size = end - start;
+    for (int n = 0; n < max_iterations; n++) {
+        uint64_t off = start + (uint64_t)(rand() % range_size);
         int bit = rand() % 8;
 
         uint8_t mask = (uint8_t)(1u << bit);

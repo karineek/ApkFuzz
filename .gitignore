@@ -20,6 +20,13 @@ seeds/
 # AFL runtime data
 afl/in/
 afl/out/
+afl-smoke-output/
+afl-custom-smoke-output/
+
+# Native build outputs
+build/
+src/custom_mutators/*.o
+src/custom_mutators/cm-ApkVulFuzz.so
 
 # Local generated logs/results
 logs/
