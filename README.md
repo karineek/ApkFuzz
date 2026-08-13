@@ -250,10 +250,13 @@ androguard axml AndroidManifest.xml
 
 ## Blackbox fuzzing
 
-Run:
+Put one or more APKs in a seed folder, then run:
 ```
-./scripts/search-blackbox.sh > all.log 2>&1 
+./scripts/search-blackbox.sh --short seeds > all.log 2>&1
 ```
+The script fuzzes each original APK in that folder. When a mutation chain breaks, it moves to the next original APK instead of stopping the whole run.
+
+The mutators dynamically locate `AndroidManifest.xml` inside each APK instead of using hardcoded offsets. This is the same idea as checking the APK with `zipinfo`: the code reads the ZIP metadata, finds the manifest entry, computes the manifest byte range, and mutates bytes inside that range.
 
 ## Greybox fuzzing
 

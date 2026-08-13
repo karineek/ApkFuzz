@@ -4,53 +4,111 @@
 #include <string.h>
 #include <time.h>
 #include <limits.h>
+#include <stdbool.h>
 
-/////// A table for APK and offsets of AndroidManifest.xml
-ApkEntry apk_table[] = {
-    { "ademar-textlauncher-10", 					4602,  4602 + 1037 },
-    { "com-gcstar-scanner-1", 						2463, 2463 + 617 },
-    { "com-gcstar-viewer-12", 						3998, 3998 + 984 },
-    { "com-java-SmokeReducer-1", 					51861, 51861 + 727 },
-    { "com-martinmimigames-simplefileexplorer-20",	17415, 17415 + 1230 },
-    { "com-omgodse-notally-56", 					1079935, 1079935 + 3513 },
-    { "com-page-bizzle-2", 							6190, 6190 + 913 },
-    { "com-trianguloy-clipboardeditor-9", 			8866, 8866 + 1256 },
-    { "dev-pranav-applock-221", 					1621968, 1621968 + 3270 },
-    { "dubrowgn-wattz-20", 							453684, 453684 + 1377 },
-	{ "eu-hxreborn-remembermysort-300", 			39565, 39565 + 665 },
-    { "F-Droid", 									7401341, 7401341 + 8921 },
-    { "flashlight", 								9226856, 9226856 + 7345 },
-    { "happymod", 									9226856, 9226856 + 7345 },
-    { "me-velc-devqs-3", 							6606, 6606 + 1256 },
-    { "org-bc-bd-mrwhite-6", 						3601, 3601 + 630 },
-    { "org-billthefarmer-editor-194", 				112532, 112532 + 1520 },
-    { "weather-shalltry-group", 					9226856, 9226856 + 7345 }
-};
+static uint16_t read_le16(const uint8_t *p) {
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+}
 
-const size_t apk_table_size = sizeof(apk_table) / sizeof(apk_table[0]);
+static uint32_t read_le32(const uint8_t *p) {
+    return (uint32_t)p[0] |
+           ((uint32_t)p[1] << 8) |
+           ((uint32_t)p[2] << 16) |
+           ((uint32_t)p[3] << 24);
+}
 
-const ApkEntry* find_apk(const char *name) {
-    for (size_t i = 0; i < apk_table_size; i++) {
-        if (strstr(name, apk_table[i].apk_name) != NULL) {
-            return &apk_table[i];
+static bool find_zip_entry_data_range(const uint8_t *buf, size_t size,
+                                      const char *entry_name,
+                                      uint64_t *start_offset,
+                                      uint64_t *end_offset) {
+    const uint32_t eocd_sig = 0x06054b50;
+    const uint32_t cd_sig = 0x02014b50;
+    const uint32_t local_sig = 0x04034b50;
+    const size_t eocd_min_size = 22;
+    const size_t max_comment_size = 0xffff;
+    size_t search_start;
+    size_t eocd_offset = SIZE_MAX;
+
+    if (!buf || size < eocd_min_size || !entry_name || !start_offset || !end_offset) {
+        return false;
+    }
+
+    search_start = (size > eocd_min_size + max_comment_size)
+        ? size - eocd_min_size - max_comment_size
+        : 0;
+
+    for (size_t pos = size - eocd_min_size + 1; pos-- > search_start;) {
+        if (read_le32(buf + pos) == eocd_sig) {
+            eocd_offset = pos;
+            break;
+        }
+        if (pos == 0) {
+            break;
         }
     }
-    return NULL;
+
+    if (eocd_offset == SIZE_MAX || eocd_offset + eocd_min_size > size) {
+        return false;
+    }
+
+    uint16_t entry_count = read_le16(buf + eocd_offset + 10);
+    uint32_t cd_size = read_le32(buf + eocd_offset + 12);
+    uint32_t cd_offset = read_le32(buf + eocd_offset + 16);
+
+    if ((uint64_t)cd_offset + cd_size > size) {
+        return false;
+    }
+
+    size_t pos = cd_offset;
+    size_t cd_end = cd_offset + cd_size;
+
+    for (uint16_t entry = 0; entry < entry_count && pos + 46 <= cd_end; entry++) {
+        if (read_le32(buf + pos) != cd_sig) {
+            return false;
+        }
+
+        uint32_t compressed_size = read_le32(buf + pos + 20);
+        uint16_t name_len = read_le16(buf + pos + 28);
+        uint16_t extra_len = read_le16(buf + pos + 30);
+        uint16_t comment_len = read_le16(buf + pos + 32);
+        uint32_t local_header_offset = read_le32(buf + pos + 42);
+        size_t name_offset = pos + 46;
+        size_t next = name_offset + name_len + extra_len + comment_len;
+
+        if (next > cd_end) {
+            return false;
+        }
+
+        if (strlen(entry_name) == name_len &&
+            memcmp(buf + name_offset, entry_name, name_len) == 0) {
+            if ((uint64_t)local_header_offset + 30 > size ||
+                read_le32(buf + local_header_offset) != local_sig) {
+                return false;
+            }
+
+            uint16_t local_name_len = read_le16(buf + local_header_offset + 26);
+            uint16_t local_extra_len = read_le16(buf + local_header_offset + 28);
+            uint64_t data_start = (uint64_t)local_header_offset + 30 +
+                                  local_name_len + local_extra_len;
+            uint64_t data_end = data_start + compressed_size;
+
+            if (compressed_size == 0 || data_start >= data_end || data_end > size) {
+                return false;
+            }
+
+            *start_offset = data_start;
+            *end_offset = data_end;
+            return true;
+        }
+
+        pos = next;
+    }
+
+    return false;
 }
 
 // We populate the APK data based on what we have:
 int load_apk_into_mutator(my_mutator_t *data, const char *path) {
-	
-	// OFFSETS: We first populate the offset to fuzz
-	const ApkEntry *entry = find_apk(path);
-	if (!entry) {
-	    fprintf(stderr, "Error: APK not found in table: %s\n", path);
-	    return -1;
-	}
-	data->i = entry->start_offset;
-    data->j = entry->end_offset;
-
-	
 	// NEW FILE NAME, we give a name to our output APK fuzzed file
 	if (data->fileout_name) { // Safety check to avoid memort leaks
 	    free(data->fileout_name);
@@ -98,6 +156,16 @@ int load_apk_into_mutator(my_mutator_t *data, const char *path) {
 	// We now populate also the binary content to mutate
     data->out_buf = buf;
     data->buf_size = (size_t)size;
+
+    // OFFSETS: dynamically fuzz the compressed AndroidManifest.xml bytes.
+    if (!find_zip_entry_data_range(data->out_buf, data->buf_size,
+                                   "AndroidManifest.xml", &data->i, &data->j)) {
+        fprintf(stderr, "Error: Failed to find AndroidManifest.xml offsets in: %s\n", path);
+        free(data->out_buf);
+        data->out_buf = NULL;
+        data->buf_size = 0;
+        return -1;
+    }
 
     return 0;
 }
