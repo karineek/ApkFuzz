@@ -28,6 +28,19 @@ build/
 src/custom_mutators/*.o
 src/custom_mutators/cm-ApkVulFuzz.so
 
+# v2 (multi-strategy) mutator build outputs
+src/custom_mutators/v2/*.o
+src/custom_mutators/v2/*.so
+src/custom_mutators/v2/mut2-standalone
+
+# Campaign / analysis outputs (run-corpus-smoke.sh, comparison, tool tester)
+afl-corpus-smoke-*/
+cmp-*/
+mutants-*/
+crashers-*/
+tools-*.csv
+comparison.csv
+
 # Local generated logs/results
 logs/
 results/
