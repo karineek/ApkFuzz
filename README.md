@@ -1,6 +1,48 @@
 # ApkVulFuzz
 Fuzzing APK as binaries to hit vulnerabilities
 
+## Publications:
+
+Even-Mendoza, K., Dakhama, A., & Berger, H. (Accepted/In press). ApkFuzz: Search-Based Fuzzing for Android APK Vulnerability. Lecture Notes in Computer Science, 6.
+
+```
+@article{f925a64a9a1e4951a099d266af61659a,
+title = "ApkFuzz: Search-Based Fuzzing for Android APK Vulnerability",
+abstract = "While most work focuses on executable code, AndroidManifest.xml, which is the primary entry point for application metadata and permission logic, is often overlooked, making it a high-trust, low-scrutiny attack surface. We present ApkFuzz, an AFL-based fuzzer with bit-level mutations targeting the encoded region of AndroidManifest.xml in the APK file. We have identified 9 issues that cause crashes and enable denial-of- service (DoS) attacks in core tools, including Google{\textquoteright}s apksigner and the widely used research tool DroidBot.",
+keywords = "Fuzzing, APK, Android, vulnerability detection",
+author = "Karine Even-Mendoza and Aidan Dakhama and Harel Berger",
+year = "2026",
+month = apr,
+day = "30",
+language = "English",
+pages = "6",
+journal = "Lecture Notes in Computer Science",
+issn = "1611-3349",
+publisher = "Springer",
+note = "18TH INTERNATIONAL SYMPOSIUM ON SEARCH-BASED SOFTWARE ENGINEERING (SSBSE), SSBSE ; Conference date: 06-07-2026 Through 06-07-2026",
+url = "https://conf.researchr.org/venue/ssbse-2026/fse-2026-venue",
+}
+```
+
+Even-Mendoza, K., Dakhama, A., & Berger, H. (2026). Artifact of ApkFuzz: Search-Based Fuzzing for Android APK Vulnerability Discovery (SSBSE2026(v1.1)). Zenodo. https://doi.org/10.5281/zenodo.19476523
+
+```
+@misc{even_mendoza_2026_19476523,
+  author       = {Even-Mendoza, Karine and
+                  Dakhama, Aidan and
+                  Berger, Harel},
+  title        = {Artifact of ApkFuzz: Search-Based Fuzzing for
+                   Android APK Vulnerability Discovery
+                  },
+  month        = apr,
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {SSBSE2026(v1.1)},
+  doi          = {10.5281/zenodo.19476523},
+  url          = {https://doi.org/10.5281/zenodo.19476523},
+}
+```
+
 
 ## Installing a Simulator of APK
 
@@ -217,7 +259,8 @@ The script fuzzes each original APK in that folder. When a mutation chain breaks
 The mutators dynamically locate `AndroidManifest.xml` inside each APK instead of using hardcoded offsets. This is the same idea as checking the APK with `zipinfo`: the code reads the ZIP metadata, finds the manifest entry, computes the manifest byte range, and mutates bytes inside that range.
 
 ## Greybox fuzzing
-TODO
+
+See instructions in `src` folder.
 
 ## Test Corrupted APK
 
